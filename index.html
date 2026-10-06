@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kasir Warung</title>
+
+  <!-- PWA: tampilan & instalasi -->
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="Aplikasi kasir sederhana untuk warung kecil">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+  <!-- PWA: khusus iPhone / iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kasir Warung">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== BAR ATAS ===== -->
+  <header class="app-bar">
+    <h1>Kasir Warung</h1>
+    <p id="appSubtitle"></p>
+  </header>
+
+  <!-- ===== ISI HALAMAN ===== -->
+  <main id="app">
+
+    <!-- 1. DASHBOARD -->
+    <section id="view-dashboard" class="view">
+      <div class="card hero">
+        <p id="dashDate" class="hero-date"></p>
+        <p id="dashTime" class="hero-time"></p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="card stat">
+          <span class="stat-label">Transaksi hari ini</span>
+          <strong id="statCount">0</strong>
+        </div>
+        <div class="card stat">
+          <span class="stat-label">Pemasukan hari ini</span>
+          <strong id="statIncome">Rp0</strong>
+        </div>
+      </div>
+
+      <div id="dashLowStock" class="alert alert-warn" hidden></div>
+
+      <div class="action-list">
+        <button type="button" class="btn btn-primary btn-lg" data-goto="kasir">🛒 Mulai Transaksi</button>
+        <button type="button" class="btn btn-lg" data-goto="produk">📦 Daftar Produk</button>
+        <button type="button" class="btn btn-lg" data-goto="riwayat">📋 Riwayat Transaksi</button>
+      </div>
+    </section>
+
+    <!-- 2. KASIR -->
+    <section id="view-kasir" class="view" hidden>
+      <h2>Kasir</h2>
+      <input type="search" id="kasirSearch" class="input" placeholder="Cari produk..." autocomplete="off">
+      <div id="kasirChips" class="chips"></div>
+      <div id="kasirList" class="list"></div>
+    </section>
+
+    <!-- 3. PRODUK -->
+    <section id="view-produk" class="view" hidden>
+      <div class="title-row">
+        <h2>Produk</h2>
+        <button type="button" id="addProductBtn" class="btn btn-primary">+ Tambah</button>
+      </div>
+      <input type="search" id="produkSearch" class="input" placeholder="Cari nama atau ID produk..." autocomplete="off">
+      <div id="produkChips" class="chips"></div>
+      <div id="produkList" class="list"></div>
+    </section>
+
+    <!-- 4. RIWAYAT -->
+    <section id="view-riwayat" class="view" hidden>
+      <h2>Riwayat Transaksi</h2>
+      <div class="card summary-card">
+        <div>
+          <span class="stat-label">Total pemasukan</span>
+          <strong id="histIncome">Rp0</strong>
+        </div>
+        <div class="right">
+          <span class="stat-label">Jumlah transaksi</span>
+          <strong id="histCount">0</strong>
+        </div>
+      </div>
+      <input type="search" id="histSearch" class="input" placeholder="Cari nomor, tanggal, atau nama barang..." autocomplete="off">
+      <div id="histList" class="list"></div>
+      <button type="button" id="clearHistoryBtn" class="btn btn-danger-outline btn-block">Hapus Semua Riwayat</button>
+    </section>
+
+    <!-- 5. PENGATURAN -->
+    <section id="view-pengaturan" class="view" hidden>
+      <h2>Pengaturan Warung</h2>
+      <form id="settingsForm" class="card form" novalidate>
+        <label for="setName">Nama warung</label>
+        <input id="setName" class="input" type="text" maxlength="40" autocomplete="off">
+
+        <label for="setAddress">Alamat</label>
+        <input id="setAddress" class="input" type="text" maxlength="80" autocomplete="off">
+
+        <label for="setPhone">Nomor telepon</label>
+        <input id="setPhone" class="input" type="tel" maxlength="20" autocomplete="off">
+
+        <label for="setCashier">Nama kasir</label>
+        <input id="setCashier" class="input" type="text" maxlength="30" autocomplete="off">
+
+        <button type="submit" class="btn btn-primary btn-block">Simpan Pengaturan</button>
+        <p class="muted small">Data ini dipakai pada struk.</p>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ===== TOMBOL KERANJANG (muncul di halaman Kasir) ===== -->
+  <button type="button" id="cartBar" class="cart-bar" hidden>
+    <span>🧾 <span id="cartBarCount">0</span> barang</span>
+    <strong id="cartBarTotal">Rp0</strong>
+    <span>Keranjang ›</span>
+  </button>
+
+  <!-- ===== NAVIGASI BAWAH ===== -->
+  <nav class="bottom-nav" aria-label="Menu utama">
+    <div class="bottom-nav-inner">
+      <button type="button" class="nav-btn active" data-view="dashboard"><span class="nav-icon">🏠</span><span>Dashboard</span></button>
+      <button type="button" class="nav-btn" data-view="kasir"><span class="nav-icon">🛒</span><span>Kasir</span></button>
+      <button type="button" class="nav-btn" data-view="produk"><span class="nav-icon">📦</span><span>Produk</span></button>
+      <button type="button" class="nav-btn" data-view="riwayat"><span class="nav-icon">📋</span><span>Riwayat</span></button>
+      <button type="button" class="nav-btn" data-view="pengaturan"><span class="nav-icon">⚙️</span><span>Pengaturan</span></button>
+    </div>
+  </nav>
+
+  <!-- ===== MODAL: KERANJANG + PEMBAYARAN ===== -->
+  <div class="modal" id="cartModal" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <div class="sheet-head">
+        <h2 id="cartTitle">Keranjang</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div class="sheet-body">
+        <div id="cartItems"></div>
+
+        <div class="cart-summary">
+          <div class="row"><span>Total barang</span><strong id="cartQty">0</strong></div>
+          <div class="row total"><span>Total pembayaran</span><strong id="cartTotal">Rp0</strong></div>
+        </div>
+
+        <h3>Pembayaran</h3>
+        <label for="payInput">Uang pelanggan (Rp)</label>
+        <input id="payInput" class="input input-big" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+
+        <div id="quickPay" class="quick-pay">
+          <button type="button" class="btn btn-sm" data-amount="10000">Rp10.000</button>
+          <button type="button" class="btn btn-sm" data-amount="20000">Rp20.000</button>
+          <button type="button" class="btn btn-sm" data-amount="50000">Rp50.000</button>
+          <button type="button" class="btn btn-sm" data-amount="100000">Rp100.000</button>
+          <button type="button" class="btn btn-sm" data-amount="pas">Uang Pas</button>
+        </div>
+
+        <div id="payInfo" class="pay-info"></div>
+      </div>
+      <div class="sheet-foot">
+        <button type="button" id="payBtn" class="btn btn-primary btn-lg btn-block">Bayar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: TAMBAH / EDIT PRODUK ===== -->
+  <div class="modal" id="productModal" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="productTitle">
+      <div class="sheet-head">
+        <h2 id="productTitle">Tambah Produk</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup">✕</button>
+      </div>
+      <form id="productForm" novalidate>
+        <div class="sheet-body form">
+          <p class="muted">ID produk: <strong id="pIdText"></strong></p>
+
+          <label for="pName">Nama produk</label>
+          <input id="pName" class="input" type="text" maxlength="60" autocomplete="off">
+
+          <label for="pPrice">Harga (Rp)</label>
+          <input id="pPrice" class="input" type="number" inputmode="numeric" min="0" step="1">
+
+          <label for="pStock">Stok</label>
+          <input id="pStock" class="input" type="number" inputmode="numeric" min="0" step="1">
+
+          <label for="pCategory">Kategori</label>
+          <input id="pCategory" class="input" type="text" maxlength="30" list="categoryList" placeholder="Contoh: Makanan" autocomplete="off">
+          <datalist id="categoryList"></datalist>
+
+          <div id="productError" class="alert alert-danger" hidden></div>
+        </div>
+        <div class="sheet-foot two-col">
+          <button type="button" class="btn" data-close>Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: STRUK ===== -->
+  <div class="modal" id="receiptModal" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
+      <div class="sheet-head no-print">
+        <h2 id="receiptTitle">Struk</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div class="sheet-body">
+        <div id="receipt" class="receipt"></div>
+      </div>
+      <div class="sheet-foot receipt-actions no-print">
+        <button type="button" id="printBtn" class="btn">🖨️ Cetak struk</button>
+        <button type="button" id="shareBtn" class="btn">📤 Bagikan struk</button>
+        <button type="button" id="newTrxBtn" class="btn btn-primary">Transaksi baru</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pesan singkat (toast) -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
